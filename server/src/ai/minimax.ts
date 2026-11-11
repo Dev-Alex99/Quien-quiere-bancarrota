@@ -31,7 +31,7 @@ Debes responder ÚNICAMENTE con un JSON válido (sin backticks de markdown ni te
 const SYSTEM_PROMPT_HOST = `Eres el mítico Conductor de televisión de "¿Quién Quiere Quedar en Bancarrota?". Eres sarcástico, elegante, disfrutas el suspense, te deleitas con las dudas de los concursantes y comentas sus decisiones con ironía fina antes de desvelar la respuesta.
 Responde en 1 o 2 oraciones tajantes y directas en español. Sin comillas ni encabezados.`;
 
-async function callMiniMax(messages: MiniMaxMessage[], temperature = 0.8): Promise<string> {
+async function callMiniMax(messages: MiniMaxMessage[], temperature = 0.7, maxTokens = 850): Promise<string> {
   const url = `${config.minimax.baseUrl}/chat/completions`;
   const response = await fetch(url, {
     method: 'POST',
@@ -43,7 +43,12 @@ async function callMiniMax(messages: MiniMaxMessage[], temperature = 0.8): Promi
       model: config.minimax.model,
       messages,
       temperature,
-      max_tokens: 1200,
+      thinking: {
+        type: 'adaptive',
+      },
+      reasoning_effort: 'low',
+      max_completion_tokens: maxTokens,
+      max_tokens: maxTokens,
     }),
   });
 
@@ -84,7 +89,7 @@ export async function generateQuestion(level: number): Promise<TriviaQuestion> {
   }
 
   try {
-    console.log(`[MiniMax M3.1] Generating dynamic Question for Level ${level} (${tier.formatted})...`);
+    console.log(`[MiniMax M3.1 Fast] Generating dynamic Question for Level ${level} (${tier.formatted}) [reasoning_effort: low]...`);
     const prompt = `Genera una pregunta para el Nivel ${level} de 10 (premio: ${tier.formatted}). ${
       level <= 3 ? 'Dificultad accesible y divertida.' : level <= 7 ? 'Dificultad media con trampa ingeniosa.' : 'Dificultad máxima de infarto con hecho histórico oscurísimo.'
     }`;
@@ -92,7 +97,7 @@ export async function generateQuestion(level: number): Promise<TriviaQuestion> {
     const responseJson = await callMiniMax([
       { role: 'system', content: SYSTEM_PROMPT_QUESTION },
       { role: 'user', content: prompt }
-    ], 0.85);
+    ], 0.7, 850);
 
     const parsed = JSON.parse(responseJson) as Partial<TriviaQuestion>;
 
@@ -144,12 +149,12 @@ export async function generateHostCommentary(
 Decisiones de los concursantes:
 ${playerDecisions.map(p => `- ${p.playerName}: ${p.hasWalkedAway ? 'SE RETIRÓ CON EL DINERO' : p.choice ? `Eligió opción [${p.choice}] (${p.isLockedIn ? 'ÚLTIMA PALABRA BLOQUEADA' : 'Dudando'})` : 'No marcó nada'}`).join('\n')}
 
-Haz un comentario televisivo de suspense y mordacidad sobre estas decisiones antes de revelar la verdad.`;
+Haz un comentario televisivo breve de suspense y mordacidad (1 a 2 oraciones) sobre estas decisiones antes de revelar la verdad.`;
 
     const commentary = await callMiniMax([
       { role: 'system', content: SYSTEM_PROMPT_HOST },
       { role: 'user', content: userPrompt }
-    ], 0.8);
+    ], 0.7, 300);
 
     return commentary.trim();
   } catch (err) {

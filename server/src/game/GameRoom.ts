@@ -24,11 +24,26 @@ export class GameRoom {
 
   private io: Server;
   private timerHandle: NodeJS.Timeout | null = null;
+  private nextQuestionPromise: Promise<TriviaQuestion> | null = null;
+  private prefetchedLevel: number | null = null;
 
   constructor(code: string, io: Server) {
     this.code = code;
     this.io = io;
     this.totalQuestions = config.game.totalQuestions;
+    // Prefetch question 1 immediately while in lobby
+    this.prefetchQuestion(1);
+  }
+
+  private prefetchQuestion(level: number): void {
+    if (level > this.totalQuestions) return;
+    if (this.prefetchedLevel === level && this.nextQuestionPromise) return;
+
+    this.prefetchedLevel = level;
+    this.nextQuestionPromise = generateQuestion(level).catch(err => {
+      console.warn(`[GameRoom] Error prefetching level ${level}:`, err);
+      return null as any;
+    });
   }
 
   public addPlayer(id: string, name: string, avatarIndex: number): Player {
@@ -92,6 +107,10 @@ export class GameRoom {
     this.finalPodium = null;
     this.hostCommentary = null;
 
+    if (this.prefetchedLevel !== 1 || !this.nextQuestionPromise) {
+      this.prefetchQuestion(1);
+    }
+
     // Reset players
     this.players.forEach(p => {
       p.currentLevel = 0;
@@ -153,10 +172,18 @@ export class GameRoom {
       p.lastAnswerCorrect = undefined;
     });
 
-    this.broadcastState();
+    // Use pre-fetched question if available, otherwise generate
+    let question: TriviaQuestion | null = null;
+    if (this.nextQuestionPromise && this.prefetchedLevel === this.currentQuestionIndex) {
+      question = await this.nextQuestionPromise;
+    }
+    if (!question) {
+      question = await generateQuestion(this.currentQuestionIndex);
+    }
+    this.currentQuestion = question;
 
-    // Fetch or generate question for this level
-    this.currentQuestion = await generateQuestion(this.currentQuestionIndex);
+    // Immediately trigger background pre-fetch for the NEXT question while players answer this one!
+    this.prefetchQuestion(this.currentQuestionIndex + 1);
 
     // If there is an AI player and they haven't walked away, simulate their choice
     const aiPlayer = this.players.find(p => p.isAI && !p.hasWalkedAway);
