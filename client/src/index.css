@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #050914;
+    background-image: 
+      radial-gradient(circle at 50% 15%, rgba(20, 42, 95, 0.7) 0%, rgba(7, 13, 30, 0.95) 65%, #040710 100%),
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+    color: #f1f5f9;
+    font-family: 'Montserrat', sans-serif;
+  }
+}
+
+/* Classic Millionaire Hexagonal / Lozenge Shaped Buttons */
+.millionaire-btn {
+  position: relative;
+  clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+/* Studio Glass Card */
+.studio-glass {
+  background: rgba(16, 28, 61, 0.75);
+  backdrop-filter: blur(12px);
+  border: 2px solid #233876;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(10, 20, 50, 0.6);
+}
+
+.studio-gold-border {
+  border: 2px solid #e5b842;
+  box-shadow: 0 0 15px rgba(229, 184, 66, 0.35);
+}
+
+/* Text Shimmer for Jackpot */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #ffd700 0%, #e5b842 50%, #b8860b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Screen Shake upon Wrong Answer */
+@keyframes studio-shake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-8px, 6px); }
+  40% { transform: translate(8px, -6px); }
+  60% { transform: translate(-5px, 4px); }
+  80% { transform: translate(4px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.shake-it {
+  animation: studio-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Heartbeat Radar Pulse */
+@keyframes heart-pulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.animate-heart-pulse {
+  animation: heart-pulse 0.8s ease-in-out infinite;
+}
+
+/* Spotlight sweeping */
+@keyframes spotlight-sweep {
+  0% { transform: rotate(-25deg); opacity: 0.3; }
+  50% { transform: rotate(25deg); opacity: 0.7; }
+  100% { transform: rotate(-25deg); opacity: 0.3; }
+}
+
+.spotlight-beam {
+  background: radial-gradient(ellipse at top, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+  animation: spotlight-sweep 6s ease-in-out infinite;
+}
