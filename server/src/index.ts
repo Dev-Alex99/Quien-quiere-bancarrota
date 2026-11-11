@@ -197,7 +197,7 @@ io.on('connection', (socket: Socket) => {
   });
 });
 
-httpServer.listen(config.port, () => {
+httpServer.listen(config.port, '0.0.0.0', () => {
   console.log('========================================================');
   console.log(`📺  ¿QUIÉN QUIERE QUEDAR EN BANCARROTA? — ESTUDIO EN VIVO`);
   console.log(`🏛️  Servidor escuchando en: http://localhost:${config.port}`);
